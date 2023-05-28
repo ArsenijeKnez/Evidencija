@@ -17,8 +17,8 @@ namespace Common
         public double MeasuredValue { get; set; }
         public double AbsolutePercentageDeviation { get; set; }
         public double SquaredDeviation { get; set; }
-        public int ImportedForecastFileId { get; set; }
-        public int MeasuredFileId { get; set; }
+        public string ImportedForecastFileId { get; set; }
+        public string MeasuredFileId { get; set; }
 
 
     }

@@ -43,11 +43,11 @@ namespace Service
             return $"{year}-{month}-{day}";
         }
 
-        public List<Load> LoadDataFromCsv(string filePath, string filetype)
+        public List<Load> LoadDataFromCsv(string fileName, string filetype, string fileDate)
         {
             List<Load> loads = new List<Load>();
 
-            string[] lines = File.ReadAllLines(filePath);
+            string[] lines = File.ReadAllLines(fileName);
 
             if (lines.Length > 1)
             {
@@ -58,15 +58,18 @@ namespace Service
                     string[] delovi = line.Split(',');
 
                     string timeStamp = delovi[0] + " " + delovi[1];
-                    if (DateTime.TryParse(timeStamp, out DateTime timeStampDT) &&
-                        double.TryParse(delovi[2], out double vrednost))
-                    {
+                    if (DateTime.TryParse(timeStamp, out DateTime timeStampDT) && double.TryParse(delovi[2], out double vrednost)){
+                       
                         //TREBA UBACITI PROVERU DA LI VEC POSTOJI
-                        Load load = new Load {Id=filetype+timeStamp, Timestamp = timeStampDT}; //za fileID treba baza a odstupanje se kasnije pravi 
-                        if (filetype == "prog") 
+                        Load load = new Load {Id=timeStamp, Timestamp = timeStampDT}; //odstupanje se kasnije pravi 
+                        if (filetype == "prog") { 
                             load.ForecastValue= vrednost;
-                        else
+                            load.ImportedForecastFileId = filetype + fileDate;
+                        }
+                        else { 
                             load.MeasuredValue= vrednost;
+                            load.ImportedForecastFileId = filetype + fileDate;
+                        }
 
                         loads.Add(load);
                         sati++;
@@ -99,6 +102,7 @@ namespace Service
             double odstupanje = Math.Pow((ostvarena - prognozirana) / ostvarena, 2);
             load.SquaredDeviation = odstupanje;
         }
+
     }
 
 }

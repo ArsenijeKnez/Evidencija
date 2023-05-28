@@ -17,7 +17,7 @@ namespace Common
         [OperationContract]
         string GetFileDate(string fileName);
         [OperationContract]
-        List<Load> LoadDataFromCsv(string filePath, string filetype);
+        List<Load> LoadDataFromCsv(string filePath, string filetype, string fileDate);
         [OperationContract]
         void AbsDeviationForLoad(Load load);
         [OperationContract]
