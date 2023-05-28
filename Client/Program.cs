@@ -66,7 +66,7 @@ namespace Client
 
                 Console.WriteLine($"Importovanje podataka iz datoteke tipa \"{tip}\" sa datumom {datum}...");
 
-                List<Load> Ucitani = proxy.LoadDataFromCsv(fileName, tip);//Ovo trebamo ucitati u bazu    
+                List<Load> Ucitani = proxy.LoadDataFromCsv(fileName, tip, datum);//Ovo trebamo ucitati u bazu    
 
                 Console.WriteLine("Importovanje završeno!");
             }
