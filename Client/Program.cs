@@ -61,7 +61,7 @@ namespace Client
             if (proxy.IsValidFileNameFormat(fileName))
             {
                 string tip = proxy.GetFileType(fileName);
-                string datum = proxy.GetFileDate(fileName);
+                string datum = proxy.GetFileDate(fileName); 
                 tip = (tip == "forecast") ? "prog" : "ostv";
 
                 Console.WriteLine($"Importovanje podataka iz datoteke tipa \"{tip}\" sa datumom {datum}...");
