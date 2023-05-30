@@ -44,7 +44,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audit.cs" />
-    <Compile Include="IBazaPodataka.cs" />
     <Compile Include="IEvidencija.cs" />
     <Compile Include="ImportedFile.cs" />
     <Compile Include="Load.cs" />
