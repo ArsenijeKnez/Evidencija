@@ -12,9 +12,10 @@ using static Common.Enums;
 
 namespace Service {
 
-    public class CsvReader {
+    public class CsvReader : ICsvReader
+    {
         private DatabaseHandler database;
-        public CsvReader() {
+        private void SetDB() {
             if (ConfigurationManager.AppSettings["dbType"] == "InMemory") {
                 database = new DatabaseHandler(DatabaseType.InMemory);
             } else {
@@ -23,14 +24,22 @@ namespace Service {
         }
 
         public void ReadFiles(string folderPath) {
+            SetDB();
             string[] filePaths = Directory.GetFiles(folderPath);
-
             foreach (string filePath in filePaths) {
-                ImportedFile importedFile = new ImportedFile(filePath);
-                database.InsertImportedFile(importedFile);
+                if(IsValidFileNameFormat(folderPath)){
 
-                ReadFile(filePath, importedFile);
+                    ImportedFile importedFile = new ImportedFile(filePath);
+                    database.InsertImportedFile(importedFile);
+
+                    ReadFile(filePath, importedFile);
+                }
             }
+            Deviation dev = new Deviation();
+            if(database.DBType() == DatabaseType.InMemory)
+                dev.CalculateDeviation(dev.CalculateDeviationInMem);
+            else
+                dev.CalculateDeviation(dev.CalculateDeviationXML);
         }
 
         public void ReadFile(string filePath, ImportedFile currentFile) {

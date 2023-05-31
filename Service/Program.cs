@@ -13,7 +13,7 @@ namespace Service
         {
             Console.WriteLine("Server čeka konekciju...");
 
-            ServiceHost host = new ServiceHost(typeof(EvidencijaService));
+            ServiceHost host = new ServiceHost(typeof(CsvReader));
             host.Open();
 
             Console.WriteLine("Uspostavljena konekcija.");

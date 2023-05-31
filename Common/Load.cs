@@ -13,8 +13,8 @@ namespace Common {
         public double MeasuredValue { get; set; }
         public double AbsolutePercentageDeviation { get; set; }
         public double SquaredDeviation { get; set; }
-        public string ForecastFileID { get; set; }
-        public string MeasuredFileId { get; set; }
+        public int ForecastFileID { get; set; }
+        public int MeasuredFileId { get; set; }
 
         public Load(string timestamp, double forecastValue, double measuredValue, double absolutePercentageDeviation, double squaredDeviation, int forecastFileID, int measuredFileId) {
             Id = nextId;
