@@ -35,11 +35,8 @@ namespace Service {
                     ReadFile(filePath, importedFile);
                 }
             }
-            Deviation dev = new Deviation();
-            if(database.DBType() == DatabaseType.InMemory)
-                dev.CalculateDeviation(dev.CalculateDeviationInMem);
-            else
-                dev.CalculateDeviation(dev.CalculateDeviationXML);
+            Deviation dev = new Deviation(database);
+            dev.CalculateDeviation();
         }
 
         public void ReadFile(string filePath, ImportedFile currentFile) {

@@ -10,65 +10,58 @@ using static Common.Enums;
 
 namespace Service
 {
-    public delegate void DeviationDBType();
 
     public class Deviation {
-
-        public void CalculateDeviation(DeviationDBType CalculateDeviationDBType)
+        private DatabaseHandler database;
+        public Deviation(DatabaseHandler database)
         {
-            CalculateDeviationDBType();
+            this.database = database;
         }
-        public Deviation()
-        {
-
-        }
-        public void CalculateDeviationXML()
-        {
-            DatabaseHandler XMLdatabase = new DatabaseHandler(DatabaseType.XML);
-            //foreach(Load l in XMLdatabase.NestoStaVec())  ovde se vade podaci iz baze
-            //    CalculateDeviationForLoad(l); 
-            //    XMLdatabase.PromeniLodaIliNesto() ovde se ubacije u bazu
-        }
-
-        public void CalculateDeviationInMem()
-        {
-            DatabaseHandler InMemdatabase = new DatabaseHandler(DatabaseType.InMemory);
-            //foreach(Load l in InMemdatabase.NestoStaVec())  ovde se vade podaci iz baze
-            //    CalculateDeviationForLoad(l);
-            //    InMemdatabase.PromeniLodaIliNesto() ovde se ubacije u bazu
-        }
-        public void CalculateDeviationForLoad(Load load)
+        public void CalculateDeviation()
         {
             string deviationCalculationMethod = ConfigurationManager.AppSettings["DeviationCalculationMethod"];
 
             switch (deviationCalculationMethod)
             {
                 case "AbsDeviation":
-                    AbsDeviationForLoad(load);
+                    AbsDeviation();
                     break;
                 case "SquDeviation":
-                    SquDeviationForLoad(load);
+                    SquDeviation();
                     break;
                 default:
                     throw new ConfigurationErrorsException("Niste dobro uneli konfiguraciju proracuna u App.config(AbsDeviation ili SquDeviation).");
             }
 
         }
-        public void AbsDeviationForLoad(Load load) {
-            double ostvarena = load.MeasuredValue; //mozda da stavimo proveru da li su postavljene obe vrednosti
-            double prognozirana = load.ForecastValue;
+        public void AbsDeviation() {
+            DeviationUpdate du = new DeviationUpdate();
+            foreach (Load load in database.NestoStaVec()) //ovde se vade podaci iz baze
+            {  
 
-            double odstupanje = (Math.Abs(ostvarena - prognozirana) / ostvarena) * 100;
-            load.AbsolutePercentageDeviation = odstupanje;
-            //Ovde treba upisati u Bazu odredjenu eventom
+                double ostvarena = load.MeasuredValue; //mozda da stavimo proveru da li su postavljene obe vrednosti
+                double prognozirana = load.ForecastValue;
+
+                double odstupanje = (Math.Abs(ostvarena - prognozirana) / ostvarena) * 100;
+                load.AbsolutePercentageDeviation = odstupanje;
+
+                du.UpdateForLoad(load, du.UpdateXML);
+            }
         }
 
-        public void SquDeviationForLoad(Load load) {
-            double ostvarena = load.MeasuredValue; //mozda da stavimo proveru da li su postavljene obe vrednosti
-            double prognozirana = load.ForecastValue;
+        public void SquDeviation() {
+            DeviationUpdate du = new DeviationUpdate();
+            foreach (Load load in database.NestoStaVec()) //ovde se vade podaci iz baze
+            {  
 
-            double odstupanje = Math.Pow((ostvarena - prognozirana) / ostvarena, 2);
-            load.SquaredDeviation = odstupanje;
+                double ostvarena = load.MeasuredValue; //mozda da stavimo proveru da li su postavljene obe vrednosti
+                double prognozirana = load.ForecastValue;
+
+                double odstupanje = Math.Pow((ostvarena - prognozirana) / ostvarena, 2);
+                load.SquaredDeviation = odstupanje;
+
+                du.UpdateForLoad(load, du.UpdateXML);
+            }
         }
     }
 }
