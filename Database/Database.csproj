@@ -41,9 +41,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="InMemoryDatabase.cs" />
+    <Compile Include="DatabaseHandler.cs" />
+    <Compile Include="InMemory\AuditInMemoryTable.cs" />
+    <Compile Include="InMemory\ImportedFileInMemoryTable.cs" />
+    <Compile Include="InMemory\InMemoryDatabase.cs" />
+    <Compile Include="InMemory\LoadInMemoryTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="XMLDatabase.cs" />
+    <Compile Include="XML\AuditXMLTable.cs" />
+    <Compile Include="XML\ImportedFileXMLTable.cs" />
+    <Compile Include="XML\LoadXMLTable.cs" />
+    <Compile Include="XML\XMLDatabase.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">
