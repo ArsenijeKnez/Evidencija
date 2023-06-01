@@ -21,9 +21,10 @@ namespace Client
             string[] filePaths = Directory.GetFiles(Putanja, "*.*", SearchOption.AllDirectories);
             foreach (string filePath in filePaths)
             {
+                string fileName = Path.GetFileName(filePath);
                 byte[] fileBytes = File.ReadAllBytes(filePath);
                 MemoryStream memoryStream = new MemoryStream(fileBytes);
-                memoryStreams.Add(filePath, memoryStream);
+                memoryStreams.Add(fileName, memoryStream);
             }
 
             XmlSerializer serializer = new XmlSerializer(typeof(List<MemoryStream>));

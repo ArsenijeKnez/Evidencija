@@ -35,20 +35,20 @@ namespace Service {
 
             foreach (KeyValuePair<string, MemoryStream> file in deserializedData)
             {
-                string filePath = file.Key;
+                string fileName = file.Key;
                 MemoryStream data = file.Value;
 
-                ImportedFile importedFile = new ImportedFile(filePath);
+                ImportedFile importedFile = new ImportedFile(fileName);
                 database.InsertImportedFile(importedFile);
 
-                ReadFile(data, importedFile, filePath);
+                ReadFile(data, importedFile);
             }
 
             Deviation dev = new Deviation(database);
             dev.CalculateDeviation();
         }
 
-        private void ReadFile(MemoryStream data, ImportedFile currentFile, string filePath) {
+        private void ReadFile(MemoryStream data, ImportedFile currentFile) {
             data.Position = 0;
             List<string> lines = new List<string>();
             using (StreamReader reader = new StreamReader(data, Encoding.UTF8))
@@ -65,10 +65,10 @@ namespace Service {
             if (lines[lines.Count - 1] == "") {     // ako na kraju fajla postoji prazan red
                 lines.RemoveAt(lines.Count - 1);
             }
+            string fileName = currentFile.FileName;
+            FileType fileType = GetFileType(fileName);
 
-            FileType fileType = GetFileType(filePath);
-
-            if (!IsFileValid(lines, filePath)) {
+            if (!IsFileValid(lines, fileName)) {
                 return;
             }
 
@@ -96,21 +96,21 @@ namespace Service {
             }
         }
 
-        private bool IsFileValid(List<string> lines, string filePath) {
+        private bool IsFileValid(List<string> lines, string fileName) {
             bool valid = true;
 
-            if (!IsValidFileNameFormat(filePath)) {
-                Audit audit = new Audit(DateTime.Now, MessageType.Error, "File '" + Path.GetFileName(filePath) + "' has an invalid name");
+            if (!IsValidFileNameFormat(fileName)) {
+                Audit audit = new Audit(DateTime.Now, MessageType.Error, "File '" + fileName + "' has an invalid name");
                 database.InsertAudit(audit);
 
                 valid = false;
             } else if (lines[0] != "TIME_STAMP,FORECAST_VALUE" && lines[0] != "TIME_STAMP,MEASURED_VALUE") {
-                Audit audit = new Audit(DateTime.Now, MessageType.Error, "File '" + Path.GetFileName(filePath) + "' does not have a header");
+                Audit audit = new Audit(DateTime.Now, MessageType.Error, "File '" + fileName + "' does not have a header");
                 database.InsertAudit(audit);
 
                 valid = false;
             } else if (lines.Count != 23 + 1 && lines.Count != 24 + 1 && lines.Count != 25 + 1) { // +1 zbog prve linije
-                Audit audit = new Audit(DateTime.Now, MessageType.Error, "File '" + Path.GetFileName(filePath) + "' has an invalid number of lines");
+                Audit audit = new Audit(DateTime.Now, MessageType.Error, "File '" + fileName + "' has an invalid number of lines");
                 database.InsertAudit(audit);
 
                 valid = false;
@@ -127,8 +127,7 @@ namespace Service {
             return false;
         }
 
-        private bool IsValidFileNameFormat(string filePath) {
-            string fileName = Path.GetFileName(filePath);
+        private bool IsValidFileNameFormat(string fileName) {
 
             string[] delovi = fileName.Split('_');
 
@@ -139,8 +138,8 @@ namespace Service {
             return true;
         }
 
-        private FileType GetFileType(string filePath) {
-            if (filePath.Contains("forecast")) {
+        private FileType GetFileType(string fileName) {
+            if (fileName.Contains("forecast")) {
                 return FileType.Prog;
             } else {
                 return FileType.Ostv;
