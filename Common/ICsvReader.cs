@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using System.Text;
@@ -11,9 +12,7 @@ namespace Common
     public interface ICsvReader
     {
         [OperationContract]
-        void ReadFiles(string folderPath);
-        [OperationContract]
-        void ReadFile(string filePath, ImportedFile currentFile);
+        void ReadFiles(MemoryStream dataStraeam);
         
     }
 }

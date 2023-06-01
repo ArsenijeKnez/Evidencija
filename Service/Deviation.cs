@@ -10,54 +10,58 @@ using static Common.Enums;
 
 namespace Service
 {
-    public delegate void DatabaseUpdateDelegate(List<Load> loads);
-    public class Deviation
-    {
-        public event DatabaseUpdateDelegate DatabaseUpdated;
-        private DeviationType devType;
-        public void CalculateDeviation(List<Load> loads,DatabaseUpdateDelegate Method)
+
+    public class Deviation {
+        private DatabaseHandler database;
+        public Deviation(DatabaseHandler database)
         {
-            Method(loads);
+            this.database = database;
         }
-        public void AbsDeviation(List<Load> loads)
+        public void CalculateDeviation()
         {
-            foreach (Load load in loads)
+            string deviationCalculationMethod = ConfigurationManager.AppSettings["DeviationCalculationMethod"];
+
+            switch (deviationCalculationMethod)
             {
-                double ostvarena = load.MeasuredValue;
+                case "AbsDeviation":
+                    AbsDeviation();
+                    break;
+                case "SquDeviation":
+                    SquDeviation();
+                    break;
+                default:
+                    throw new ConfigurationErrorsException("Niste dobro uneli konfiguraciju proracuna u App.config(AbsDeviation ili SquDeviation).");
+            }
+
+        }
+        public void AbsDeviation() {
+            DeviationUpdate du = new DeviationUpdate();
+            foreach (Load load in database.NestoStaVec()) //ovde se vade podaci iz baze
+            {  
+
+                double ostvarena = load.MeasuredValue; //mozda da stavimo proveru da li su postavljene obe vrednosti
                 double prognozirana = load.ForecastValue;
 
                 double odstupanje = (Math.Abs(ostvarena - prognozirana) / ostvarena) * 100;
                 load.AbsolutePercentageDeviation = odstupanje;
+
+                du.UpdateForLoad(load, du.UpdateXML);
             }
-            devType = DeviationType.AbsDeviation;
-            DatabaseUpdated?.Invoke(loads);
         }
 
-        public void SquDeviation(List<Load> loads)
-        {
-            foreach (Load load in loads)
-            {
+        public void SquDeviation() {
+            DeviationUpdate du = new DeviationUpdate();
+            foreach (Load load in database.NestoStaVec()) //ovde se vade podaci iz baze
+            {  
 
-                double ostvarena = load.MeasuredValue;
+                double ostvarena = load.MeasuredValue; //mozda da stavimo proveru da li su postavljene obe vrednosti
                 double prognozirana = load.ForecastValue;
 
                 double odstupanje = Math.Pow((ostvarena - prognozirana) / ostvarena, 2);
                 load.SquaredDeviation = odstupanje;
+
+                du.UpdateForLoad(load, du.UpdateXML);
             }
-            devType = DeviationType.SquDeviation;
-            DatabaseUpdated?.Invoke(loads);
-        }
-
-        public void InMemWrite(List<Load> loads)
-        {
-            DatabaseHandler InMemdatabase = new DatabaseHandler(DatabaseType.InMemory);
-            InMemdatabase.UpdateDeviationsInMemory(loads, devType);
-        }
-
-        public void XMLWrite(List<Load> loads)
-        {
-            DatabaseHandler InMemdatabase = new DatabaseHandler(DatabaseType.XML);
-            InMemdatabase.UpdateDeviationsInMemory(loads, devType);
         }
     }
 }

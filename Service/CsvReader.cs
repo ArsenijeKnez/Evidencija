@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using static Common.Enums;
 
 namespace Service {
@@ -24,49 +25,43 @@ namespace Service {
             }
         }
 
-        public void ReadFiles(string folderPath) {
+        public void ReadFiles(MemoryStream dataStream) {
             SetDB();
 
-            string[] filePaths = Directory.GetFiles(folderPath, "*.*", SearchOption.AllDirectories);
-            foreach (string filePath in filePaths) {
+            XmlSerializer serializer = new XmlSerializer(typeof(List<MemoryStream>));
+
+            dataStream.Position = 0;
+            Dictionary<string, MemoryStream> deserializedData = (Dictionary<string, MemoryStream>)serializer.Deserialize(dataStream);
+
+            foreach (KeyValuePair<string, MemoryStream> file in deserializedData)
+            {
+                string filePath = file.Key;
+                MemoryStream data = file.Value;
+
                 ImportedFile importedFile = new ImportedFile(filePath);
                 database.InsertImportedFile(importedFile);
 
-                ReadFile(filePath, importedFile);
+                ReadFile(data, importedFile, filePath);
             }
 
-            Deviation();
+            Deviation dev = new Deviation(database);
+            dev.CalculateDeviation();
         }
-        private void Deviation()
-        {
-            string deviationCalculationMethod = ConfigurationManager.AppSettings["DeviationCalculationMethod"];
-            Deviation dev = new Deviation();
-            List<Load> loads = database.ReadLoadsForDeviationCalculation();
-            switch (deviationCalculationMethod)
+
+        private void ReadFile(MemoryStream data, ImportedFile currentFile, string filePath) {
+            data.Position = 0;
+            List<string> lines = new List<string>();
+            using (StreamReader reader = new StreamReader(data, Encoding.UTF8))
             {
-                case "AbsDeviation":
-                    dev.CalculateDeviation(loads, dev.AbsDeviation); 
-                    break;
-                case "SquDeviation":
-                    dev.CalculateDeviation(loads, dev.SquDeviation); 
-                    break;
-                default:
-                    throw new ConfigurationErrorsException("Niste dobro uneli konfiguraciju proracuna u App.config(AbsDeviation ili SquDeviation).");
+                string line;
+
+                while ((line = reader.ReadLine()) != null)
+                {
+                    lines.Add(line);
+                    Console.WriteLine(line);
+                }
             }
-
-            dev.DatabaseUpdated += UpdateDatabase;
-        }
-        private void UpdateDatabase(List<Load> loads)
-        {
-            Deviation dev = new Deviation();
-            if (database.DBType() == DatabaseType.InMemory)
-                dev.CalculateDeviation(loads, dev.InMemWrite);
-            else
-                dev.CalculateDeviation(loads, dev.XMLWrite);
-        }
-
-        public void ReadFile(string filePath, ImportedFile currentFile) {
-            List<string> lines = new List<string>(File.ReadAllLines(filePath));
+           
             if (lines[lines.Count - 1] == "") {     // ako na kraju fajla postoji prazan red
                 lines.RemoveAt(lines.Count - 1);
             }

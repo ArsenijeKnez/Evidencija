@@ -7,6 +7,7 @@ using System.Net.NetworkInformation;
 using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace Client
 {
@@ -16,9 +17,21 @@ namespace Client
         {
             Console.Write("Unesite putanju: ");
             string Putanja = Console.ReadLine();
+            Dictionary<string, MemoryStream> memoryStreams = new Dictionary<string, MemoryStream>();
+            string[] filePaths = Directory.GetFiles(Putanja, "*.*", SearchOption.AllDirectories);
+            foreach (string filePath in filePaths)
+            {
+                byte[] fileBytes = File.ReadAllBytes(filePath);
+                MemoryStream memoryStream = new MemoryStream(fileBytes);
+                memoryStreams.Add(filePath, memoryStream);
+            }
 
-            proxy.ReadFiles(Putanja);
- 
+            XmlSerializer serializer = new XmlSerializer(typeof(List<MemoryStream>));
+            MemoryStream dataStream = new MemoryStream();
+            serializer.Serialize(dataStream, memoryStreams);
+
+            proxy.ReadFiles(dataStream);
+
             Console.Write("Unos podataka završen");
         }
   
