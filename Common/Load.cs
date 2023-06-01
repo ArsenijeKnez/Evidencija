@@ -16,6 +16,7 @@ namespace Common {
         public int ForecastFileID { get; set; }
         public int MeasuredFileId { get; set; }
 
+        // konstruktor za ucitavanje load-ova iz csv fajlova (id nije parametar nego se automatski postavlja njegova vrijednost)
         public Load(string timestamp, double forecastValue, double measuredValue, double absolutePercentageDeviation, double squaredDeviation, int forecastFileID, int measuredFileId) {
             Id = nextId;
             Timestamp = timestamp;
@@ -27,6 +28,18 @@ namespace Common {
             MeasuredFileId = measuredFileId;
 
             nextId++;
+        }
+
+        // konstruktor za citanje load-ova iz baze 
+        public Load(int id, double forecastValue, double measuredValue) {
+            Id = id;
+            Timestamp = "";
+            ForecastValue = forecastValue;
+            MeasuredValue = measuredValue;
+            AbsolutePercentageDeviation = -1;
+            SquaredDeviation = -1;
+            ForecastFileID = -1;
+            MeasuredFileId = -1;
         }
     }
 }

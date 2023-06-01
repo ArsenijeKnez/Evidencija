@@ -32,6 +32,45 @@ namespace Database.XML {
             File.WriteAllLines(xmlFilePath, lines.ToArray());
         }
 
+        public List<Load> ReadForDeviationCalculation() {
+            List<Load> loads = new List<Load>();
+
+            List<string> lines = new List<string>(File.ReadAllLines(xmlFilePath));
+            for (int i = 2; i < lines.Count - 1; i += 10) {   // ne gledam <?xml>, <rows> i </rows>, uvecavam za 10 pa ce svaki lines[i] da bude naredni <row>
+                int id = Int32.Parse(TrimStartString(TrimEndString(lines[i + 1], "</ID>"), "\t\t<ID>"));
+                double forecastValue = Double.Parse(TrimStartString(TrimEndString(lines[i + 3], "</FORECAST_VALUE>"), "\t\t<FORECAST_VALUE>"));
+                double measuredValue = Double.Parse(TrimStartString(TrimEndString(lines[i + 4], "</MEASURED_VALUE>"), "\t\t<MEASURED_VALUE>"));
+                
+                if (forecastValue != -1 && measuredValue != -1) {
+                    Load load = new Load(id, forecastValue, measuredValue);
+                    loads.Add(load);
+                }
+            }
+
+            return loads;
+        }
+
+        public void UpdateDeviations(List<Load> loads, DeviationType deviationType) {
+            List<string> lines = new List<string>(File.ReadAllLines(xmlFilePath));
+
+            int loadIndex = 0;
+            for (int i = 2; i < lines.Count - 1; i += 10) {   // ne gledam <?xml>, <rows> i </rows>, uvecavam za 10 pa ce svaki lines[i] da bude naredni <row>
+                int id = Int32.Parse(TrimStartString(TrimEndString(lines[i + 1], "</ID>"), "\t\t<ID>"));
+                
+                if (id == loads[loadIndex].Id) {    // jer se devijacija racuna samo za one kod kojih i measured i forecast value nisu 1
+                    if (deviationType == DeviationType.SquDeviation) {
+                        lines[i + 6] = "\t\t<SQUARED_DEVIATION>" + loads[loadIndex].SquaredDeviation + "</SQUARED_DEVIATION>";
+                    } else {
+                        lines[i + 5] = "\t\t<ABSOLUTE_PERCENTAGE_DEVIATION>" + loads[loadIndex].AbsolutePercentageDeviation + "</ABSOLUTE_PERCENTAGE_DEVIATION>";
+                    }
+                }
+
+                loadIndex++;
+            }
+
+            File.WriteAllLines(xmlFilePath, lines.ToArray());
+        }
+
         private List<string> GetXML(Load load) {
             List<string> loadXML = new List<string>();
 
@@ -66,6 +105,22 @@ namespace Database.XML {
             for (int j = loadLines.Count; j >= 0; j--) {
                 lines.Insert(endLineIndex, loadLines[j]);
             }
+        }
+
+        private string TrimStartString(string source, string trimString) {
+            if (source.StartsWith(trimString)) {
+                return source.Substring(trimString.Length);
+            }
+
+            return source;
+        }
+
+        private string TrimEndString(string source, string trimString) {
+            if (source.EndsWith(trimString)) {
+                return source.Substring(0, source.Length - trimString.Length);
+            }
+
+            return source;
         }
     }
 }

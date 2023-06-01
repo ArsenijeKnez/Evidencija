@@ -8,5 +8,6 @@ namespace Common {
     public class Enums {
         public enum FileType { Ostv, Prog }
         public enum DatabaseType { InMemory, XML }
+        public enum DeviationType { AbsDeviation, SquDeviation }
     }
 }

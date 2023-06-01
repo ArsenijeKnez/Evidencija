@@ -44,5 +44,22 @@ namespace Database {
                 IMDatabase.ImportedFileTable.Insert(importedFile);
             }
         }
+
+        public List<Load> ReadLoadsForDeviationCalculation() {
+            if (databaseType == DatabaseType.XML) {
+                return XMLDatabase.LoadTable.ReadForDeviationCalculation();
+            } else {
+                return IMDatabase.LoadTable.ReadForDeviationCalculation();
+            }
+        }
+
+        public void UpdateDeviationsXML(List<Load> loads, DeviationType deviationType) {
+            XMLDatabase.LoadTable.UpdateDeviations(loads, deviationType);
+        }
+
+        public void UpdateDeviationsInMemory(List<Load> loads, DeviationType deviationType) {
+            IMDatabase.LoadTable.UpdateDeviations(loads, deviationType);
+
+        }
     }
 }
