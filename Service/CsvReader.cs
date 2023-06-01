@@ -35,8 +35,34 @@ namespace Service {
                 ReadFile(filePath, importedFile);
             }
 
-            Deviation dev = new Deviation(database);
-            dev.CalculateDeviation();
+            Deviation();
+        }
+        private void Deviation()
+        {
+            string deviationCalculationMethod = ConfigurationManager.AppSettings["DeviationCalculationMethod"];
+            Deviation dev = new Deviation();
+            List<Load> loads = database.ReadLoadsForDeviationCalculation();
+            switch (deviationCalculationMethod)
+            {
+                case "AbsDeviation":
+                    dev.CalculateDeviation(loads, dev.AbsDeviation); 
+                    break;
+                case "SquDeviation":
+                    dev.CalculateDeviation(loads, dev.SquDeviation); 
+                    break;
+                default:
+                    throw new ConfigurationErrorsException("Niste dobro uneli konfiguraciju proracuna u App.config(AbsDeviation ili SquDeviation).");
+            }
+
+            dev.DatabaseUpdated += UpdateDatabase;
+        }
+        private void UpdateDatabase(List<Load> loads)
+        {
+            Deviation dev = new Deviation();
+            if (database.DBType() == DatabaseType.InMemory)
+                dev.CalculateDeviation(loads, dev.InMemWrite);
+            else
+                dev.CalculateDeviation(loads, dev.XMLWrite);
         }
 
         public void ReadFile(string filePath, ImportedFile currentFile) {

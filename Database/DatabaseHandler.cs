@@ -13,6 +13,8 @@ namespace Database {
         private XMLDatabase XMLDatabase;
         private DatabaseType databaseType;
 
+        public DatabaseType DBType() { return databaseType; }
+
         public DatabaseHandler(DatabaseType databaseType) {
             if (databaseType == DatabaseType.XML) {
                 XMLDatabase = new XMLDatabase();
