@@ -7,6 +7,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static Common.Enums;
 
@@ -25,30 +26,38 @@ namespace Service {
 
         public void ReadFiles(string folderPath) {
             SetDB();
+
             string[] filePaths = Directory.GetFiles(folderPath);
             foreach (string filePath in filePaths) {
-                if(IsValidFileNameFormat(folderPath)){
+                ImportedFile importedFile = new ImportedFile(filePath);
+                database.InsertImportedFile(importedFile);
 
-                    ImportedFile importedFile = new ImportedFile(filePath);
-                    database.InsertImportedFile(importedFile);
-
-                    ReadFile(filePath, importedFile);
-                }
+                ReadFile(filePath, importedFile);
             }
+
             Deviation dev = new Deviation(database);
             dev.CalculateDeviation();
         }
 
         public void ReadFile(string filePath, ImportedFile currentFile) {
-            string[] lines = File.ReadAllLines(filePath);
+            List<string> lines = new List<string>(File.ReadAllLines(filePath));
+            if (lines[lines.Count - 1] == "") {     // ako na kraju fajla postoji prazan red
+                lines.RemoveAt(lines.Count - 1);
+            }
 
             FileType fileType = GetFileType(filePath);
 
-            AuditErrorCheck(lines.Length, filePath);
+            if (!IsFileValid(lines, filePath)) {
+                return;
+            }
 
-            for (int i = 1; i < lines.Length; i++) {
-                if (lines[i] == "") {   // ako je prazan red
-                    return;
+            for (int i = 1; i < lines.Count; i++) {
+                if (lines[i] == "") {   // ako je prazan red (poslednji red je prazan)
+                    continue;
+                }
+
+                if (!IsLineValid(lines[i])) {
+                    continue;
                 }
 
                 string[] delovi = lines[i].Split(',');
@@ -66,12 +75,35 @@ namespace Service {
             }
         }
 
-        private void AuditErrorCheck(int lineNumber, string filePath) {
-            if (lineNumber != 23+1 && lineNumber != 24+1 && lineNumber != 25+1) { // +1 zbog prve linije
-                Audit audit = new Audit(DateTime.Now, MessageType.Error, "File '" + Path.GetFileName(filePath) + "' has an invalid number of lines");
-                
+        private bool IsFileValid(List<string> lines, string filePath) {
+            bool valid = true;
+
+            if (!IsValidFileNameFormat(filePath)) {
+                Audit audit = new Audit(DateTime.Now, MessageType.Error, "File '" + Path.GetFileName(filePath) + "' has an invalid name");
                 database.InsertAudit(audit);
+
+                valid = false;
+            } else if (lines[0] != "TIME_STAMP,FORECAST_VALUE" && lines[0] != "TIME_STAMP,MEASURED_VALUE") {
+                Audit audit = new Audit(DateTime.Now, MessageType.Error, "File '" + Path.GetFileName(filePath) + "' does not have a header");
+                database.InsertAudit(audit);
+
+                valid = false;
+            } else if (lines.Count != 23 + 1 && lines.Count != 24 + 1 && lines.Count != 25 + 1) { // +1 zbog prve linije
+                Audit audit = new Audit(DateTime.Now, MessageType.Error, "File '" + Path.GetFileName(filePath) + "' has an invalid number of lines");
+                database.InsertAudit(audit);
+
+                valid = false;
             }
+
+            return valid;
+        }
+
+        private bool IsLineValid(string line) {
+            if (Regex.IsMatch(line, @"^\d{4}-\d{2}-\d{2} \d{2}:\d{2},\d+(\.\d+)?$")) {
+                return true;
+            }
+
+            return false;
         }
 
         private bool IsValidFileNameFormat(string filePath) {
