@@ -16,14 +16,9 @@ namespace Client
         {
             Console.Write("Unesite putanju: ");
             string Putanja = Console.ReadLine();
-            string[] Directories = Directory.GetDirectories(Putanja);
 
-            foreach (string dir in Directories)
-            {
-
-                proxy.ReadFiles(dir);
+            proxy.ReadFiles(Putanja);
  
-            }
             Console.Write("Unos podataka završen");
         }
   

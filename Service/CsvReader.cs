@@ -27,7 +27,7 @@ namespace Service {
         public void ReadFiles(string folderPath) {
             SetDB();
 
-            string[] filePaths = Directory.GetFiles(folderPath);
+            string[] filePaths = Directory.GetFiles(folderPath, "*.*", SearchOption.AllDirectories);
             foreach (string filePath in filePaths) {
                 ImportedFile importedFile = new ImportedFile(filePath);
                 database.InsertImportedFile(importedFile);
