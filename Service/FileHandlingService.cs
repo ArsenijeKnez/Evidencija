@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Service {
     public class FileHandlingService : IFileHandling {
-        private static CsvReader CsvReader { get; set; } = new CsvReader();
+        private static CsvReader csvReader = new CsvReader();
 
         [OperationBehavior(AutoDisposeParameters = true)]
         public void SendFiles(List<UploadedFile> uploadedFiles) {
@@ -19,7 +19,7 @@ namespace Service {
                 files.Add(file.Name, fileContent);
             }
 
-            CsvReader.ReadFiles(files);
+            csvReader.ReadFiles(files);
 
             Console.WriteLine("\n\n********************************\n\n");
 
