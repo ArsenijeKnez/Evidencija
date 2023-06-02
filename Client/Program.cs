@@ -32,6 +32,7 @@ namespace Client
             serializer.Serialize(dataStream, memoryStreams);
 
             proxy.ReadFiles(dataStream);
+            dataStream.Dispose();
 
             Console.Write("Unos podataka završen");
         }
