@@ -7,7 +7,6 @@ using System.ServiceModel;
 
 namespace Service {
     public class Program {
-        public static CsvReader CsvReader { get; set; } = new CsvReader();
         static void Main(string[] args) {
             ServiceHost host = new ServiceHost(typeof(FileHandlingService));
             host.Open();
