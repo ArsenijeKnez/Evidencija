@@ -40,10 +40,7 @@ namespace Service {
                 string fileName = file.Key;
                 MemoryStream data = file.Value;
 
-                ImportedFile importedFile = new ImportedFile(fileName);
-                database.InsertImportedFile(importedFile);
-
-                ReadFile(data, importedFile);
+                ReadFile(data, fileName);
 
                 if (lastFileHasInvalidLine) {
                     InvalidLineWarning(fileName);
@@ -55,7 +52,7 @@ namespace Service {
             Deviation();
         }
 
-        private void ReadFile(MemoryStream data, ImportedFile currentFile) {
+        private void ReadFile(MemoryStream data, string fileName) {
             data.Position = 0;
             List<string> lines = new List<string>();
             using (StreamReader reader = new StreamReader(data, Encoding.UTF8)) {
@@ -71,12 +68,14 @@ namespace Service {
                 lines.RemoveAt(lines.Count - 1);
             }
 
-            string fileName = currentFile.FileName;
             FileType fileType = GetFileType(fileName);
 
             if (!IsFileValid(lines, fileName)) {
                 return;
             }
+
+            ImportedFile importedFile = new ImportedFile(fileName);
+            database.InsertImportedFile(importedFile);
 
             for (int i = 1; i < lines.Count; i++) {
                 if (lines[i] == "") {   // ako je prazan red (poslednji red je prazan)
@@ -93,9 +92,9 @@ namespace Service {
 
                 Load load;
                 if (fileType == FileType.Ostv) {
-                    load = new Load(timeStamp, value, -1, -1, -1, currentFile.Id, -1);
+                    load = new Load(timeStamp, value, -1, -1, -1, importedFile.Id, -1);
                 } else {
-                    load = new Load(timeStamp, -1, value, -1, -1, -1, currentFile.Id);
+                    load = new Load(timeStamp, -1, value, -1, -1, -1, importedFile.Id);
                 }
 
                 database.InsertLoad(load, fileType);
