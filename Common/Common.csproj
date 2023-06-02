@@ -45,10 +45,11 @@
   <ItemGroup>
     <Compile Include="Audit.cs" />
     <Compile Include="Enums.cs" />
-    <Compile Include="ICsvReader.cs" />
+    <Compile Include="IFileHandling.cs" />
     <Compile Include="ImportedFile.cs" />
     <Compile Include="Load.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UploadedFile.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Common
-{
+namespace Common {
     [ServiceContract]
-    public interface ICsvReader
-    {
+    public interface IFileHandling {
+
         [OperationContract]
-        void ReadFiles(MemoryStream dataStraeam);
+        void SendFiles(List<UploadedFile> files);
     }
 }

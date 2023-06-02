@@ -56,16 +56,21 @@ namespace Database.XML {
             int loadIndex = 0;
             for (int i = 2; i < lines.Count - 1; i += 10) {   // ne gledam <?xml>, <rows> i </rows>, uvecavam za 10 pa ce svaki lines[i] da bude naredni <row>
                 int id = Int32.Parse(TrimStartString(TrimEndString(lines[i + 1], "</ID>"), "\t\t<ID>"));
-                
+
+                if (loadIndex >= loads.Count) {
+                    break;
+                }
+
                 if (id == loads[loadIndex].Id) {    // jer se devijacija racuna samo za one kod kojih i measured i forecast value nisu 1
                     if (deviationType == DeviationType.SquDeviation) {
                         lines[i + 6] = "\t\t<SQUARED_DEVIATION>" + loads[loadIndex].SquaredDeviation + "</SQUARED_DEVIATION>";
+                        loadIndex++;
+
                     } else {
                         lines[i + 5] = "\t\t<ABSOLUTE_PERCENTAGE_DEVIATION>" + loads[loadIndex].AbsolutePercentageDeviation + "</ABSOLUTE_PERCENTAGE_DEVIATION>";
+                        loadIndex++;
                     }
                 }
-
-                loadIndex++;
             }
 
             File.WriteAllLines(xmlFilePath, lines.ToArray());

@@ -14,12 +14,12 @@ using static Common.Enums;
 
 namespace Service {
 
-    public class CsvReader : ICsvReader
+    public class CsvReader
     {
         private DatabaseHandler database;
         private bool lastFileHasInvalidLine = false;
 
-        private void SetDB() {
+        public CsvReader() {
             if (ConfigurationManager.AppSettings["dbType"] == "InMemory") {
                 database = new DatabaseHandler(DatabaseType.InMemory);
             } else {
@@ -27,53 +27,35 @@ namespace Service {
             }
         }
 
-        public void ReadFiles(MemoryStream dataStream) {
-            SetDB();
+        public void ReadFiles(Dictionary<string, string> files) {
 
-            XmlSerializer serializer = new XmlSerializer(typeof(List<KeyValuePair<string, MemoryStream>>));
-
-            dataStream.Position = 0;
-            List<KeyValuePair<string, MemoryStream>> deserializedData = (List<KeyValuePair<string, MemoryStream>>)serializer.Deserialize(dataStream);
-
-            foreach (KeyValuePair<string, MemoryStream> file in deserializedData)
-            {
+            foreach (KeyValuePair<string, string> file in files) {
                 string fileName = file.Key;
-                MemoryStream data = file.Value;
 
-                ReadFile(data, fileName);
+                string[] stringSeparators = new string[] { "\r\n" };
+                string[] linesArray = file.Value.Split(stringSeparators, StringSplitOptions.RemoveEmptyEntries);
+                List<string> lines = new List<string>(linesArray);
+
+                ReadFile(lines, fileName);
 
                 if (lastFileHasInvalidLine) {
                     InvalidLineWarning(fileName);
                     lastFileHasInvalidLine = false;
                 }
-
-                data.Dispose();
             }
+
             Deviation();
         }
 
-        private void ReadFile(MemoryStream data, string fileName) {
-            data.Position = 0;
-            List<string> lines = new List<string>();
-            using (StreamReader reader = new StreamReader(data, Encoding.UTF8)) {
-                string line;
-
-                while ((line = reader.ReadLine()) != null) {
-                    lines.Add(line);
-                    Console.WriteLine(line);
-                }
-            }
-
-            if (lines[lines.Count - 1] == "") {     // ako na kraju fajla postoji prazan red
-                lines.RemoveAt(lines.Count - 1);
-            }
-
+        private void ReadFile(List<string> lines, string fileName) {
             FileType fileType = GetFileType(fileName);
 
             if (!IsFileValid(lines, fileName)) {
+                Console.WriteLine("Fajl '" + fileName + "' se odbacuje jer nije validan");
                 return;
             }
 
+            Console.WriteLine("Ucitavaju se podaci iz fajla '" + fileName + "'");
             ImportedFile importedFile = new ImportedFile(fileName);
             database.InsertImportedFile(importedFile);
 
@@ -136,7 +118,7 @@ namespace Service {
                 database.InsertAudit(audit);
 
                 valid = false;
-            } else if (lines[0] != "TIME_STAMP,FORECAST_VALUE" && lines[0] != "TIME_STAMP,MEASURED_VALUE") {
+            } else if (!lines[0].Contains("TIME_STAMP,FORECAST_VALUE") && !lines[0].Contains("TIME_STAMP,MEASURED_VALUE")) {
                 Audit audit = new Audit(DateTime.Now, MessageType.Error, "File '" + fileName + "' does not have a header");
                 database.InsertAudit(audit);
 

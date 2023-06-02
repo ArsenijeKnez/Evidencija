@@ -5,25 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ServiceModel;
 
-namespace Service
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Server čeka konekciju...");
-
-            ServiceHost host = new ServiceHost(typeof(CsvReader));
+namespace Service {
+    public class Program {
+        public static CsvReader CsvReader { get; set; } = new CsvReader();
+        static void Main(string[] args) {
+            ServiceHost host = new ServiceHost(typeof(FileHandlingService));
             host.Open();
 
-            Console.WriteLine("Uspostavljena konekcija.");
-
-
+            Console.WriteLine("Servis je spreman\n\n");
 
             Console.ReadKey();
-
             host.Close();
-            Console.WriteLine("Zatvorena konekcija");
+            Console.WriteLine("Servis je zatvoren");
         }
     }
 }
