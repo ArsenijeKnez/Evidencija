@@ -19,6 +19,7 @@ namespace Client
             string Putanja = Console.ReadLine();
             Dictionary<string, MemoryStream> memoryStreams = new Dictionary<string, MemoryStream>();
             string[] filePaths = Directory.GetFiles(Putanja, "*.*", SearchOption.AllDirectories);
+
             foreach (string filePath in filePaths)
             {
                 string fileName = Path.GetFileName(filePath);
@@ -27,9 +28,11 @@ namespace Client
                 memoryStreams.Add(fileName, memoryStream);
             }
 
-            XmlSerializer serializer = new XmlSerializer(typeof(List<MemoryStream>));
+            List<KeyValuePair<string, MemoryStream>> keyValueList = memoryStreams.ToList();
+
+            XmlSerializer serializer = new XmlSerializer(typeof(List<KeyValuePair<string, MemoryStream>>));
             MemoryStream dataStream = new MemoryStream();
-            serializer.Serialize(dataStream, memoryStreams);
+            serializer.Serialize(dataStream, keyValueList);
 
             proxy.ReadFiles(dataStream);
             dataStream.Dispose();
@@ -43,10 +46,6 @@ namespace Client
             ChannelFactory<ICsvReader> server = new ChannelFactory<ICsvReader>("EvidencijaService");
 
             ICsvReader proxy = server.CreateChannel();
-
-            ChannelFactory<ICsvReader> bazaPodataka = new ChannelFactory<ICsvReader>("BazaPodatakaService");
-
-            ICsvReader Bazaproxy = bazaPodataka.CreateChannel();
 
             Console.WriteLine("****************************************************");
             Console.WriteLine("*           Evidencija prognozirane i ostvarene     *");

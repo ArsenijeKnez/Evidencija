@@ -30,10 +30,10 @@ namespace Service {
         public void ReadFiles(MemoryStream dataStream) {
             SetDB();
 
-            XmlSerializer serializer = new XmlSerializer(typeof(List<MemoryStream>));
+            XmlSerializer serializer = new XmlSerializer(typeof(List<KeyValuePair<string, MemoryStream>>));
 
             dataStream.Position = 0;
-            Dictionary<string, MemoryStream> deserializedData = (Dictionary<string, MemoryStream>)serializer.Deserialize(dataStream);
+            List<KeyValuePair<string, MemoryStream>> deserializedData = (List<KeyValuePair<string, MemoryStream>>)serializer.Deserialize(dataStream);
 
             foreach (KeyValuePair<string, MemoryStream> file in deserializedData)
             {
