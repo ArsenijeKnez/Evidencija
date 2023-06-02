@@ -24,6 +24,11 @@ namespace Client {
                 Console.WriteLine("Unesite putanju foldera sa csv fajlovima");
                 string folderPath = Console.ReadLine();
 
+                if (!Directory.Exists(folderPath)) {
+                    Console.WriteLine("\n\tPutanja ne postoji\n");
+                    continue;
+                }
+
                 FileSender fileSender = new FileSender(proxy, folderPath);
                 fileSender.SendFiles();
 
