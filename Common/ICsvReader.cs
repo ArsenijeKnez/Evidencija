@@ -13,6 +13,5 @@ namespace Common
     {
         [OperationContract]
         void ReadFiles(MemoryStream dataStraeam);
-        
     }
 }

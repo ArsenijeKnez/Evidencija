@@ -40,7 +40,7 @@ namespace Database.XML {
 
         private void AddToEnd(Audit audit, List<string> lines, int endLineIndex) {
             List<string> auditLines = GetXML(audit);
-            for (int j = auditLines.Count; j >= 0; j--) {
+            for (int j = auditLines.Count - 1; j >= 0; j--) {
                 lines.Insert(endLineIndex, auditLines[j]);
             }
         }

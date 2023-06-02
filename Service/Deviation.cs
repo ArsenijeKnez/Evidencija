@@ -56,7 +56,7 @@ namespace Service
         public void XMLWrite(List<Load> loads)
         {
             DatabaseHandler InMemdatabase = new DatabaseHandler(DatabaseType.XML);
-            InMemdatabase.UpdateDeviationsInMemory(loads, devType);
+            InMemdatabase.UpdateDeviationsXML(loads, devType);
         }
     }
 }

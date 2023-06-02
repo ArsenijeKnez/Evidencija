@@ -20,21 +20,21 @@ namespace Database.XML {
         }
 
         private void CreateXMLFiles() {
-            if (File.Exists("Database/TBL_AUDIT.xml")) {
+            if (!File.Exists("Database/TBL_AUDIT.xml")) {
                 CreateXMLFile("Database/TBL_AUDIT.xml");
             }
 
-            if (File.Exists("Database/TBL_IMPORTED_FILE.xml")) {
+            if (!File.Exists("Database/TBL_IMPORTED_FILE.xml")) {
                 CreateXMLFile("Database/TBL_IMPORTED_FILE.xml");
             }
 
-            if (File.Exists("Database/TBL_LOAD.xml")) {
-                CreateXMLFile("Database / TBL_LOAD.xml");
+            if (!File.Exists("Database/TBL_LOAD.xml")) {
+                CreateXMLFile("Database/TBL_LOAD.xml");
             }
         }
 
         private void CreateXMLFile(string filePath) {
-            File.Create(filePath);
+            File.Create(filePath).Close();
 
             string initialXML =
                 "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>" + Environment.NewLine +

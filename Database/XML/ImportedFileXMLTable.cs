@@ -43,7 +43,7 @@ namespace Database.XML {
         // dodaje importedFile na kraj fajla 
         private void AddToEnd(ImportedFile importedFile, List<string> lines, int endLineIndex) {
             List<string> ifLines = GetXML(importedFile);
-            for (int j = ifLines.Count; j >= 0; j--) {
+            for (int j = ifLines.Count - 1; j >= 0; j--) {
                 lines.Insert(endLineIndex, ifLines[j]);
             }
         }

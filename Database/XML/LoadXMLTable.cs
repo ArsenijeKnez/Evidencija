@@ -102,7 +102,7 @@ namespace Database.XML {
         // dodaje load na kraj fajla 
         private void AddToEnd(Load load, List<string> lines, int endLineIndex) {
             List<string> loadLines = GetXML(load);
-            for (int j = loadLines.Count; j >= 0; j--) {
+            for (int j = loadLines.Count - 1; j >= 0; j--) {
                 lines.Insert(endLineIndex, loadLines[j]);
             }
         }

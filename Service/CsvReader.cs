@@ -17,6 +17,8 @@ namespace Service {
     public class CsvReader : ICsvReader
     {
         private DatabaseHandler database;
+        private bool lastFileHasInvalidLine = false;
+
         private void SetDB() {
             if (ConfigurationManager.AppSettings["dbType"] == "InMemory") {
                 database = new DatabaseHandler(DatabaseType.InMemory);
@@ -42,10 +44,64 @@ namespace Service {
                 database.InsertImportedFile(importedFile);
 
                 ReadFile(data, importedFile);
+
+                if (lastFileHasInvalidLine) {
+                    InvalidLineWarning(fileName);
+                    lastFileHasInvalidLine = false;
+                }
+
                 data.Dispose();
             }
             Deviation();
         }
+
+        private void ReadFile(MemoryStream data, ImportedFile currentFile) {
+            data.Position = 0;
+            List<string> lines = new List<string>();
+            using (StreamReader reader = new StreamReader(data, Encoding.UTF8)) {
+                string line;
+
+                while ((line = reader.ReadLine()) != null) {
+                    lines.Add(line);
+                    Console.WriteLine(line);
+                }
+            }
+
+            if (lines[lines.Count - 1] == "") {     // ako na kraju fajla postoji prazan red
+                lines.RemoveAt(lines.Count - 1);
+            }
+
+            string fileName = currentFile.FileName;
+            FileType fileType = GetFileType(fileName);
+
+            if (!IsFileValid(lines, fileName)) {
+                return;
+            }
+
+            for (int i = 1; i < lines.Count; i++) {
+                if (lines[i] == "") {   // ako je prazan red (poslednji red je prazan)
+                    continue;
+                }
+
+                if (!IsLineValid(lines[i])) {
+                    continue;
+                }
+
+                string[] delovi = lines[i].Split(',');
+                string timeStamp = delovi[0];
+                double value = Double.Parse(delovi[1]);
+
+                Load load;
+                if (fileType == FileType.Ostv) {
+                    load = new Load(timeStamp, value, -1, -1, -1, currentFile.Id, -1);
+                } else {
+                    load = new Load(timeStamp, -1, value, -1, -1, -1, currentFile.Id);
+                }
+
+                database.InsertLoad(load, fileType);
+            }
+        }
+
         private void Deviation()
         {
             string deviationCalculationMethod = ConfigurationManager.AppSettings["DeviationCalculationMethod"];
@@ -72,53 +128,6 @@ namespace Service {
             else
                 dev.CalculateDeviation(loads, dev.XMLWrite);
         }
-        private void ReadFile(MemoryStream data, ImportedFile currentFile) {
-            data.Position = 0;
-            List<string> lines = new List<string>();
-            using (StreamReader reader = new StreamReader(data, Encoding.UTF8))
-            {
-                string line;
-
-                while ((line = reader.ReadLine()) != null)
-                {
-                    lines.Add(line);
-                    Console.WriteLine(line);
-                }
-            }
-           
-            if (lines[lines.Count - 1] == "") {     // ako na kraju fajla postoji prazan red
-                lines.RemoveAt(lines.Count - 1);
-            }
-            string fileName = currentFile.FileName;
-            FileType fileType = GetFileType(fileName);
-
-            if (!IsFileValid(lines, fileName)) {
-                return;
-            }
-
-            for (int i = 1; i < lines.Count; i++) {
-                if (lines[i] == "") {   // ako je prazan red (poslednji red je prazan)
-                    continue;
-                }
-
-                if (!IsLineValid(lines[i])) {
-                    continue;
-                }
-
-                string[] delovi = lines[i].Split(',');
-                string timeStamp = delovi[0]; 
-                double value = Double.Parse(delovi[1]);
-
-                Load load;
-                if (fileType == FileType.Ostv) {
-                    load = new Load(timeStamp, value, -1, -1, -1, currentFile.Id, -1);
-                } else {
-                    load = new Load(timeStamp, -1, value, -1, -1, -1, currentFile.Id);
-                }
-
-                database.InsertLoad(load, fileType);
-            }
-        }
 
         private bool IsFileValid(List<string> lines, string fileName) {
             bool valid = true;
@@ -143,10 +152,17 @@ namespace Service {
             return valid;
         }
 
+        private void InvalidLineWarning(string fileName) {
+            Audit audit = new Audit(DateTime.Now, MessageType.Warning, "File '" + fileName + "' contains invalid lines");
+            database.InsertAudit(audit);
+        }
+
         private bool IsLineValid(string line) {
             if (Regex.IsMatch(line, @"^\d{4}-\d{2}-\d{2} \d{2}:\d{2},\d+(\.\d+)?$")) {
                 return true;
             }
+
+            lastFileHasInvalidLine = true;
 
             return false;
         }
